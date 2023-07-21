@@ -11,6 +11,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -44,11 +47,9 @@ public class DUser {
 
     public ArrayList<DUser> getAllUsers() {
         ArrayList<DUser> userList = new ArrayList<>();
-        Statement st;
         try {
-
-            st = m_con.createStatement();
-            String s_sql = "SELECT id,ci,name,lastname,birth_date,gender,number_phone,marital_status,current_residence,type,email,password,registration_date,created_at,updated_at FROM users;";
+            Statement st = m_con.createStatement();
+            String s_sql = "SELECT id, ci, name, lastname, birth_date, gender, number_phone, marital_status, current_residence, photo, type, email, password, registration_date, created_at, updated_at FROM users;";
             ResultSet rs = st.executeQuery(s_sql);
             while (rs.next()) {
                 DUser user = new DUser();
@@ -56,31 +57,65 @@ public class DUser {
                 user.setCi(rs.getString("ci"));
                 user.setName(rs.getString("name"));
                 user.setLastname(rs.getString("lastname"));
-                user.setBirthDate(rs.getDate("birth_date"));
+                user.setBirthDate(rs.getString("birth_date"));
                 user.setGender(rs.getString("gender"));
                 user.setNumberPhone(rs.getString("number_phone"));
                 user.setMaritalStatus(rs.getString("marital_status"));
                 user.setCurrentResidence(rs.getString("current_residence"));
-                user.setPhoto(rs.getString("photo"));
                 user.setType(rs.getString("type"));
                 user.setEmail(rs.getString("email"));
                 user.setPassword(rs.getString("password"));
-                user.setRegistrationDate(rs.getDate("registration_date"));
-                user.setCreatedAt(rs.getTimestamp("created_at"));
-                user.setUpdatedAt(rs.getTimestamp("updated_at"));
-
+                user.setRegistrationDate(rs.getString("registration_date"));
+                user.setCreatedAt(rs.getString("created_at"));
+                user.setUpdatedAt(rs.getString("updated_at"));
                 userList.add(user);
             }
-            return userList;
+            rs.close();
+            st.close();
         } catch (SQLException ex) {
-
-            Logger.getLogger(DUsuario.class.getName()).log(Level.SEVERE, null, ex);
-            return l_usuario;
+            Logger.getLogger(DUser.class.getName()).log(Level.SEVERE, null, ex);
+            // Aquí, en lugar de retornar una lista l_usuario, podrías retornar null o una lista vacía.
+            // Por ejemplo:
+            // return new ArrayList<DUser>();
+            return null;
         }
-
+        return userList;
     }
 
-    public void create() {
+    public void mostrar(ArrayList<DUser> lista) {
+        System.out.println("LISTA DE USUARIOS:");
+        for (DUser user : lista) {
+            System.out.println("ID: " + user.getId());
+            System.out.println("CI: " + user.getCi());
+            System.out.println("Nombre: " + user.getName());
+            System.out.println("Apellido: " + user.getLastname());
+            System.out.println("Fecha de Nacimiento: " + user.getBirthDate());
+            System.out.println("Género: " + user.getGender());
+            System.out.println("Número de Teléfono: " + user.getNumberPhone());
+            System.out.println("Estado Civil: " + user.getMaritalStatus());
+            System.out.println("Residencia Actual: " + user.getCurrentResidence());
+            System.out.println("Tipo: " + user.getType());
+            System.out.println("Correo Electrónico: " + user.getEmail());
+            System.out.println("Contraseña: " + user.getPassword());
+            System.out.println("Fecha de Registro: " + user.getRegistrationDate());
+            System.out.println("Fecha de Creación: " + user.getCreatedAt());
+            System.out.println("Fecha de Actualización: " + user.getUpdatedAt());
+            System.out.println("------------------------------");
+        }
+    }
+
+    public boolean create() {
+        try {
+            Statement st = m_con.createStatement();
+            String s_sql = "INSERT INTO users (ci, name, lastname, birth_date, gender, number_phone, marital_status, current_residence, type, email, password, registration_date) "
+                    + "VALUES ('" + ci + "', '" + name + "', '" + lastname + "', '" + birthDate + "', '" + gender + "', '" + numberPhone + "', '" + maritalStatus + "', '" + currentResidence + "', '" + type + "', '" + email + "', '" + password + "', '" + registrationDate + "')";
+            int rowsAffected = st.executeUpdate(s_sql);
+            st.close();
+            return rowsAffected > 0; // Devuelve true si se insertó al menos una fila correctamente
+        } catch (SQLException ex) {
+            Logger.getLogger(DUser.class.getName()).log(Level.SEVERE, null, ex);
+            return false;
+        }
 
     }
 
@@ -209,12 +244,54 @@ public class DUser {
         this.updatedAt = updatedAt;
     }
 
+    public ConexionDB getM_conexion() {
+        return m_conexion;
+    }
+
+    public void setM_conexion(ConexionDB m_conexion) {
+        this.m_conexion = m_conexion;
+    }
+
     public Connection getM_con() {
         return m_con;
     }
 
     public void setM_con(Connection m_con) {
         this.m_con = m_con;
+    }
+
+    public static void main(String[] args) {
+       DUser dUser = new DUser(); // Crear una instancia de la clase DUser
+        ArrayList<DUser> userList = dUser.getAllUsers(); // Obtener la lista de usuarios
+
+        if (userList != null) {
+            dUser.mostrar(userList); // Mostrar la lista de usuarios
+        } else {
+            System.out.println("No se pudo obtener la lista de usuarios.");
+        }
+         
+        /*DUser dUser = new DUser(); // Crear una instancia de la clase DUser
+
+        // Configurar los datos del nuevo usuario utilizando los métodos setters
+        dUser.setCi("1122334");
+        dUser.setName("NURSE");
+        dUser.setLastname("Usuario");
+        dUser.setBirthDate("1990-01-01");
+        dUser.setGender("M");
+        dUser.setNumberPhone("65654212");
+        dUser.setMaritalStatus("Soltero");
+        dUser.setCurrentResidence("Santa Cruz, bolivia");
+        dUser.setType("E");
+        dUser.setEmail("nuevo@gmail.com");
+        dUser.setPassword("12345678");
+        dUser.setRegistrationDate("2023-07-20");
+
+        // Insertar el nuevo usuario en la base de datos
+        if (dUser.create()) {
+            System.out.println("Nuevo usuario insertado correctamente.");
+        } else {
+            System.out.println("No se pudo insertar el nuevo usuario.");
+        }*/
     }
 
 }
